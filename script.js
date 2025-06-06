@@ -1,53 +1,60 @@
-let startTime = 0;
-let intervalId;
-let isRunning = false;
-let lapCount = 0;
-
 const display = document.getElementById('display');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const lapBtn = document.getElementById('lapBtn');
 const laps = document.getElementById('laps');
 
-document.getElementById('start').addEventListener('click', () => {
-  if (!isRunning) {
-    startTime = Date.now() - (startTime || 0);
-    intervalId = setInterval(updateDisplay, 100);
-    isRunning = true;
-  }
-});
+let startTime, elapsedTime = 0, timerInterval;
 
-document.getElementById('pause').addEventListener('click', () => {
-  if (isRunning) {
-    clearInterval(intervalId);
-    isRunning = false;
-  }
-});
+function timeToString(time) {
+  let diffInHrs = time / 3600000;
+  let hh = Math.floor(diffInHrs);
 
-document.getElementById('reset').addEventListener('click', () => {
-  clearInterval(intervalId);
-  isRunning = false;
-  startTime = 0;
-  lapCount = 0;
-  display.textContent = '00:00:00';
-  laps.innerHTML = '';
-});
+  let diffInMin = (diffInHrs - hh) * 60;
+  let mm = Math.floor(diffInMin);
 
-document.getElementById('lap').addEventListener('click', () => {
-  if (isRunning) {
-    const lapTime = display.textContent;
-    const li = document.createElement('li');
-    li.textContent = `Lap ${++lapCount}: ${lapTime}`;
-    laps.appendChild(li);
-  }
-});
+  let diffInSec = (diffInMin - mm) * 60;
+  let ss = Math.floor(diffInSec);
 
-function updateDisplay() {
-  const elapsed = Date.now() - startTime;
-  const hours = Math.floor(elapsed / 3600000);
-  const minutes = Math.floor((elapsed % 3600000) / 60000);
-  const seconds = Math.floor((elapsed % 60000) / 1000);
+  let formattedHH = hh.toString().padStart(2, '0');
+  let formattedMM = mm.toString().padStart(2, '0');
+  let formattedSS = ss.toString().padStart(2, '0');
 
-  display.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  return `${formattedHH}:${formattedMM}:${formattedSS}`;
 }
 
-function pad(number) {
-  return number < 10 ? '0' + number : number;
+function start() {
+  startTime = Date.now() - elapsedTime;
+  timerInterval = setInterval(function printTime() {
+    elapsedTime = Date.now() - startTime;
+    display.textContent = timeToString(elapsedTime);
+  }, 1000);
+  startBtn.disabled = true;
 }
+
+function pause() {
+  clearInterval(timerInterval);
+  startBtn.disabled = false;
+}
+
+function reset() {
+  clearInterval(timerInterval);
+  display.textContent = "00:00:00";
+  elapsedTime = 0;
+  laps.innerHTML = "";
+  startBtn.disabled = false;
+}
+
+function lap() {
+  if (elapsedTime === 0) return;
+  let lapTime = timeToString(elapsedTime);
+  let li = document.createElement("li");
+  li.textContent = `Lap: ${lapTime}`;
+  laps.appendChild(li);
+}
+
+startBtn.addEventListener('click', start);
+pauseBtn.addEventListener('click', pause);
+resetBtn.addEventListener('click', reset);
+lapBtn.addEventListener('click', lap);
