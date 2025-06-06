@@ -1,23 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Elegant Stopwatch</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <title>Stopwatch</title>
+  <style>
+    :root {
+      --bg-color: #fff1e6;
+      --primary: #6a4e42;
+      --accent: #ff7f51;
+      --soft: #d9a5b3;
+      --text: #6a4e42;
+      --btn-hover: #ffffff;
+    }
+
+    body.dark {
+      --bg-color: #1e1e1e;
+      --primary: #f5d0c5;
+      --accent: #ff7f51;
+      --soft: #444;
+      --text: #f2f2f2;
+      --btn-hover: #333;
+    }
+
+    body {
+      font-family: 'Times New Roman', serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.5s ease;
+    }
+
+    .container {
+      background-color: var(--bg-color);
+      border: 2px solid var(--soft);
+      border-radius: 20px;
+      padding: 40px;
+      width: 500px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    h4 {
+      font-size: 36px;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+
+    #time {
+      font-size: 60px;
+      margin-bottom: 30px;
+    }
+
+    .digits {
+      font-weight: bold;
+    }
+
+    .text {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0 5px;
+      color: var(--primary);
+    }
+
+    #buttons button {
+      width: 100px;
+      height: 45px;
+      margin: 8px;
+      border: none;
+      border-radius: 30px;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      color: white;
+    }
+
+    #start { background-color: var(--accent); }
+    #stop  { background-color: #d96f52; }
+    #reset { background-color: var(--soft); color: var(--primary); }
+    #lap   { background-color: var(--primary); }
+
+    #start:hover,
+    #stop:hover,
+    #reset:hover,
+    #lap:hover {
+      background-color: var(--btn-hover);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    #laps {
+      margin-top: 20px;
+      text-align: left;
+      max-height: 120px;
+      overflow-y: auto;
+      padding-left: 10px;
+      color: var(--text);
+      font-weight: bold;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .theme-toggle button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .theme-toggle button:hover {
+      background-color: var(--btn-hover);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Elegant Stopwatch</h1>
-    <div class="timer-box" id="display">00:00:00</div>
-    <div class="buttons">
-      <button id="startBtn">Start</button>
-      <button id="pauseBtn">Pause</button>
-      <button id="resetBtn">Reset</button>
-      <button id="lapBtn">Lap</button>
-    </div>
-    <ul id="laps"></ul>
+  <div class="theme-toggle">
+    <button id="toggleTheme">Toggle Mode</button>
   </div>
-<script src="script.js"></script>
+
+  <div class="container">
+    <h4>Stopwatch</h4>
+    <div id="time">
+      <span class="digits" id="hour">00</span><span class="text">Hr</span>
+      <span class="digits" id="minute">00</span><span class="text">Min</span>
+      <span class="digits" id="second">00</span><span class="text">Sec</span>
+    </div>
+    <div id="buttons">
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+      <button id="reset">Reset</button>
+      <button id="lap">Lap</button>
+    </div>
+    <div id="laps"></div>
+  </div>
+
+  <script>
+    let hour = 0, minute = 0, second = 0;
+    let timer = false;
+
+    const startButton = document.getElementById('start');
+    const stopButton = document.getElementById('stop');
+    const resetButton = document.getElementById('reset');
+    const lapButton = document.getElementById('lap');
+    const lapsContainer = document.getElementById('laps');
+
+    startButton.onclick = () => {
+      if (!timer) {
+        timer = true;
+        stopWatch();
+      }
+    };
+
+    stopButton.onclick = () => {
+      timer = false;
+    };
+
+    resetButton.onclick = () => {
+      timer = false;
+      hour = minute = second = 0;
+      updateDisplay();
+      lapsContainer.innerHTML = '';
+    };
+
+    lapButton.onclick = () => {
+      let h = hour < 10 ? "0" + hour : hour;
+      let m = minute < 10 ? "0" + minute : minute;
+      let s = second < 10 ? "0" + second : second;
+      const lapTime = `${h}:${m}:${s}`;
+      const entry = document.createElement('div');
+      entry.textContent = "Lap: " + lapTime;
+      lapsContainer.prepend(entry);
+    };
+
+    function stopWatch() {
+      if (timer) {
+        second++;
+        if (second === 60) {
+          second = 0;
+          minute++;
+        }
+        if (minute === 60) {
+          minute = 0;
+          hour++;
+        }
+        updateDisplay();
+        setTimeout(stopWatch, 1000);
+      }
+    }
+
+    function updateDisplay() {
+      document.getElementById('hour').textContent = hour < 10 ? "0" + hour : hour;
+      document.getElementById('minute').textContent = minute < 10 ? "0" + minute : minute;
+      document.getElementById('second').textContent = second < 10 ? "0" + second : second;
+    }
+
+    // Theme toggle functionality
+    const toggleBtn = document.getElementById('toggleTheme');
+    toggleBtn.onclick = () => {
+      document.body.classList.toggle('dark');
+    };
+  </script>
 </body>
 </html>
